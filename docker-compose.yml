@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: zero2prod_postgres
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${SUPERUSER:-postgres}
+      POSTGRES_PASSWORD: ${SUPERUSER_PWD:-password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SUPERUSER:-postgres}"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    environment:
+      DATABASE_URL: postgres://${APP_USER:-app}:${APP_USER_PWD:-secret}@postgres:${DB_PORT:-5432}/${APP_DB_NAME:-newsletter}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
