@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:latest
@@ -7,6 +9,7 @@ services:
     environment:
       POSTGRES_USER: ${SUPERUSER:-postgres}
       POSTGRES_PASSWORD: ${SUPERUSER_PWD:-password}
+      POSTGRES_DB: ${APP_DB_NAME:-newsletter}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${SUPERUSER:-postgres}"]
       interval: 1s
@@ -25,6 +28,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      DATABASE_URL: postgres://${APP_USER:-app}:${APP_USER_PWD:-secret}@postgres:${DB_PORT:-5432}/${APP_DB_NAME:-newsletter}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: cargo test -- --test-threads=1
 
 volumes:
   postgres_data:

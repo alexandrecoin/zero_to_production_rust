@@ -1,0 +1,15 @@
+FROM rust:latest
+
+WORKDIR /app
+
+# Copy all source files
+COPY . .
+
+# Install sqlx-cli for DB commands
+RUN cargo install sqlx-cli --no-default-features --features rustls,postgres
+
+# Build your project dependencies once (optional caching)
+RUN cargo build
+
+# Run tests (this is overridden by docker-compose command but kept as fallback)
+CMD ["cargo", "test", "--", "--test-threads=1"]

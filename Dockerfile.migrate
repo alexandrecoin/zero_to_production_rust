@@ -1,4 +1,4 @@
-FROM rust:1.82
+FROM rust:latest
 
 # Install sqlx-cli (adjust version if needed)
 RUN cargo install sqlx-cli --no-default-features --features rustls,postgres
